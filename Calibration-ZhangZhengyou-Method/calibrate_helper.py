@@ -67,25 +67,48 @@ class Calibrator(object):
                     cv2.waitKey(500)
 
         # calibrate the camera
-        ret, mat_intri, coff_dis, v_rot, v_trans = cv2.calibrateCamera(points_world, points_pixel, gray_img.shape[::-1], None, None)
-        print ("ret: {}".format(ret))
-        print ("intrinsic matrix: \n {}".format(mat_intri))
-        # in the form of (k_1, k_2, p_1, p_2, k_3)
-        print ("distortion cofficients: \n {}".format(coff_dis))
-        print ("rotation vectors: \n {}".format(v_rot))
-        print ("translation vectors: \n {}".format(v_trans))
+        ret, camera_matrix, coff_dis, rvec, tvec = cv2.calibrateCamera(points_world, points_pixel, gray_img.shape[::-1], None, None)
+        # print ("ret: {}".format(ret))
+        # print ("内参矩阵 intrinsic matrix: \n {}".format(camera_matrix))
+        # # in the form of (k_1, k_2, p_1, p_2, k_3)
+        # print ("distortion cofficients: \n {}".format(coff_dis))
+        # print ("旋转 rotation vectors: \n {}".format(rvec))
+        # print ("平移translation vectors: \n {}".format(tvec))
 
         # calculate the error of reproject
         total_error = 0
         for i in range(len(points_world)):
-            points_pixel_repro, _ = cv2.projectPoints(points_world[i], v_rot[i], v_trans[i], mat_intri, coff_dis)
+            points_pixel_repro, _ = cv2.projectPoints(points_world[i], rvec[i], tvec[i], camera_matrix, coff_dis)
             error = cv2.norm(points_pixel[i], points_pixel_repro, cv2.NORM_L2) / len(points_pixel_repro)
             total_error += error
         print("Average error of reproject: {}".format(total_error / len(points_world)))
 
-        self.mat_intri = mat_intri
+            #print ("ret: {}".format(ret))
+        print ("内参矩阵 intrinsic matrix: \n {}".format(camera_matrix))
+    # in the form of (k_1, k_2, p_1, p_2, k_3)
+        print ("distortion cofficients: \n {}".format(coff_dis))
+        print ("旋转 rotation vectors: \n {}".format(rvec))
+        print ("平移 translation vectors: \n {}".format(tvec))
+        print("相机内参:", camera_matrix)
+        print("平移向量:", tvec)
+        print("旋转矩阵:", rvec)
+# (R T, 0 1)矩阵
+        Trans = np.hstack((rvec, [[tvec[0]], [tvec[1]], [tvec[2]]]))
+# 相机内参和相机外参 矩阵相乘
+        temp = np.dot(camera_matrix, Trans)
+        Pp = np.linalg.pinv(temp)
+# 点（u, v, 1) 对应代码里的 [605,341,1]
+        p1 = np.array([605, 341, 1], np.float)
+        print("像素坐标系的点:", p1)
+        X = np.dot(Pp, p1)
+        print("X:", X)
+# 与Zc相除 得到世界坐标系的某一个点
+        X1 = np.array(X[:3], np.float)/X[3]
+        print("X1:", X1)
+
+        self.mat_intri = camera_matrix
         self.coff_dis = coff_dis
-        return mat_intri, coff_dis
+        return camera_matrix, coff_dis
 
 
     def dedistortion(self, save_dir):

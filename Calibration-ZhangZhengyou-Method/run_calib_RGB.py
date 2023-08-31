@@ -40,11 +40,11 @@ if __name__ == '__main__':
     matrixBase2Camera = np.dot(matrixBase2Hand,matrixHand2Camera)
     matrixCamera2Base = np.linalg.inv(matrixBase2Camera)
 
-    zc = 0.290
+    zc = 0.490
     u = 118
     v = 222
 
 # 直接变换
     outputBase2 = np.dot(np.linalg.inv(matrixCamera2Base[0:3,0:3]),zc*np.dot(np.linalg.inv(matrixCamera2Pixel),np.array([u,v,1]).reshape(3,1))-matrixCamera2Base[:3,3].reshape(3,1))
     print("直接变换",outputBase2)
-    main()
+

@@ -14,7 +14,6 @@ img_points = [] # 存储2D点
  
 # 获取指定目录下.jpg图像的路径
 images = glob.glob(r"D:/imgs/*.jpg")
-print(images)
 
 i=0
 for fname in images:
@@ -26,7 +25,6 @@ for fname in images:
     # 获取图像角点
     ret, corners = cv2.findChessboardCorners(gray, (4, 4), None)
     # print(corners)
- 
     if ret:
         # 存储三维角点坐标
         obj_points.append(objp)
@@ -42,12 +40,10 @@ for fname in images:
         i+=1
         cv2.imwrite('conimg'+str(i)+'.jpg', img)
         cv2.waitKey(10)
-print(len(img_points))
+print(len(obj_points))
 cv2.destroyAllWindows()
- 
 # 标定
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, size, None, None)
- 
 print('------照相机内参与外参------')
 print("ret:", ret) # 标定误差
 print("mtx:\n", mtx) # 内参矩阵
@@ -70,3 +66,50 @@ newimg = newimg[y:y+h,x:x+w]
 cv2.imwrite('newimg.jpg', newimg)
 print ("newimg的大小为:", newimg.shape)
 
+
+# # 此函数只是外部定义而已，大家可自行定义
+# camera_matrix=mtx, rvec=rvecs, tvec =tvecs
+# print("相机内参:", camera_matrix)
+# print("平移向量:", tvec)
+# print("旋转矩阵:", rvec)
+# # (R T, 0 1)矩阵
+# Trans = np.hstack((rvec, [[tvec[0]], [tvec[1]], [tvec[2]]]))
+# # 相机内参和相机外参 矩阵相乘
+# temp = np.dot(camera_matrix, Trans)
+# Pp = np.linalg.pinv(temp)
+# # 点（u, v, 1) 对应代码里的 [605,341,1]
+# p1 = np.array([382, 210, 1], np.float)
+# print("像素坐标系的点:", p1)
+# X = np.dot(Pp, p1)
+# print("X:", X)
+# # 与Zc相除 得到世界坐标系的某一个点
+# X1 = np.array(X[:3], np.float)/X[3]
+# print("X1:", X1)
+
+# ==================================================
+#           将像素坐标转换为基平面世界坐标
+#			import numpy as np
+# ==================================================
+def camera2CalibrationPlate(u: int, v: int) -> list:
+    Zw = 0
+    R = np.mat([[ 0.35066758],[-0.01744657],[-0.31043756]])
+    T = np.mat([[-6.25989891],
+       [ 3.4231296 ],
+       [45.85018562]])
+    I = np.mat(
+        [[1.43928823e+03, 0.00000000e+00, 3.00724131e+02],
+        [0.00000000e+00, 1.52014929e+03, 2.08443300e+02],
+        [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]
+        )
+    imagePoint = np.mat([[u],
+                         [v],
+                         [1]])
+
+    leftSideMat = R.I * I.I * imagePoint
+    rightSideMat = R.I * T
+    s = Zw + rightSideMat[2] / leftSideMat[2]
+    s = float(s[0])
+    wcPoint = R.I * (s * I.I * imagePoint - T)
+    mappoint = [float(wcPoint[1]), float(wcPoint[0])]
+    print(mappoint)
+    return mappoint

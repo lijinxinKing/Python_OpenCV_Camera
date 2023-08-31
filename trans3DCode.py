@@ -33,8 +33,8 @@ def Unproject(points, Z, intrinsic, distortion):
     result.append([x, y, z])
   return result
 
-f_x = 3.24
-f_y = 3.24
+f_x = 1.45
+f_y = 1.45
 c_x = 32.0
 c_y = 24.0
 
