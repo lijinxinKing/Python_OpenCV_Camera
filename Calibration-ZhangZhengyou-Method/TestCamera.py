@@ -77,7 +77,7 @@ class CameraApp:
 def get_photo():
     cap = cv2.VideoCapture(0)
     f, frame = cap.read()
-    cv2.imwrite('image1.jpg', frame)
+    cv2.imwrite("D:\imgs\Snapshot00112.jpg", frame)
     cap.release()
  
 class Utils():
