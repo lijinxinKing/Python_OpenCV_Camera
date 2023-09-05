@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import glob
- 
+# 参考链接： https://blog.csdn.net/summer_524/article/details/130875263
 # 设置寻找亚像素角点的参数，采用的停止准则是最大循环次数30和最大误差阈值0.001
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 35, 0.001)
  
