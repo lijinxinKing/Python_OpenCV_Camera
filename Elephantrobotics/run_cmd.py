@@ -7,8 +7,3 @@ def run_cmd_Popen_PIPE(cmd_string):
     """
     print('运行cmd指令：{}'.format(cmd_string))
     return subprocess.Popen(cmd_string, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='gbk').communicate()[0]
-
-cmd = "net use \\\\10.119.96.35 /user:share Aa123456"
-run_cmd_Popen_PIPE(cmd)
-cmd = "mklink /d \"LenovoMultipleClient\" \"\\10.119.96.35\Tangram\LenovoMultipleClient\""
-run_cmd_Popen_PIPE(cmd)
