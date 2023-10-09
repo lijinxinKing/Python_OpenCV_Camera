@@ -6,7 +6,7 @@ import serial.tools.list_ports
 import time,cv2
 import sys,os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from GetCameraData import get_color_location
+from GetCameraData import get_color_location,Get_AprilTag_36h11
 from Elephantrobotics import settings
 
 #degrees: a list of coords value(List[float]).
@@ -80,6 +80,52 @@ def SetRobot():
         settings.SmartArm.set_coords(move_location)
         time.sleep(1.5)
         
+
+def SetRobotByAprilTag(tagId):
+    target_x = 0
+    target_y = 0
+    if settings.SmartArm == None:
+        getDeviceName()
+        settings.SmartArm = ultraArm(deviceName, 115200)
+    
+    print('Get AprilTag Location: ')
+    for i in range(0,15):
+        result = Get_AprilTag_36h11.GetAprilTag36h11(tagId)
+        x,y,w,h,ratio = result
+        if y <= 180:
+            target_y = -3
+        elif y >= 220:
+            target_y = 3
+        else:
+            target_y = 0
+        target_x = 0
+        if target_x == 0 and target_y == 0:
+            break
+        coords = settings.SmartArm.get_coords_info()
+        move_location = [coords[0]-target_y,coords[1],coords[2],coords[3]]
+        settings.SmartArm.set_coords(move_location)
+        time.sleep(1.5)
+
+    print('Get AprilTag Location: ')
+    for i in range(0,15):
+        result = Get_AprilTag_36h11.GetAprilTag36h11(tagId)
+        x,y,w,h,ratio = result
+        if x < 470:
+            target_x = 3
+        elif x > 500:
+            if abs(x-485) < 3:
+                target_x = 0
+            else:
+                target_x = -3
+        else :
+            target_x = 0
+        if target_x == 0 and target_y == 0:
+            break
+        coords = settings.SmartArm.get_coords_info()
+        move_location = [coords[0],coords[1]-target_x,coords[2],coords[3]]
+        settings.SmartArm.set_coords(move_location)
+        time.sleep(1.5)
+
 if __name__=="__main__":
     #SetRobot()
     move_zero()

@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import time
 import subprocess
-from Elephantrobotics import settings
+import settings
 getAllTags = []
 getMachineAprilTag = []
 import os
@@ -56,7 +56,7 @@ def GetAprilTagByTagId(tagId):
             # 创建一个apriltag检测器
             at_detector = apriltag.Detector(families='tag36h11') 
             tags = at_detector.detect(gray)
-            if len(tags) >= 0:
+            if len(tags) > 0:
                 for tag in tags:
                     print(tag.tag_id)
                     if tag.tag_id == tagId:
@@ -68,6 +68,40 @@ def GetAprilTagByTagId(tagId):
                         ratio = (float(w+h)/2)/9
                         return (x,y,w,h,ratio)
                         getAllTags.append(tag)
+            else:
+                time.sleep(0.1)
+            if len(getAllTags) >= 1:
+                cap.release()
+                break
+            elif len(getAllTags) == 0:
+                cap.release()
+                start_exe()
+                time.sleep(1)
+                cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+                time.sleep(1)
+        i = i + 1
+    cap.release()
+    return None
+
+
+def GetAprilTagCenterByTagId(tagId):
+    i = 0
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+    flag = cap.isOpened()
+    getAllTags = []
+    while i < 10:
+        ret, frame = cap.read()       
+        if ret:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # 创建一个apriltag检测器
+            at_detector = apriltag.Detector(families='tag36h11') 
+            tags = at_detector.detect(gray)
+            if len(tags) > 0:
+                for tag in tags:
+                    getAllTags.append(tag)
+                    print(tag.tag_id)
+                    if tag.tag_id == tagId:
+                        return (tag.center)
             else:
                 time.sleep(0.1)
             if len(getAllTags) >= 1:
@@ -115,4 +149,4 @@ def GetCalibration():
     return getAllTags
 
 if __name__=="__main__":
-    GetAprilTagByTagId(1)
+    GetMachineAprilTag()

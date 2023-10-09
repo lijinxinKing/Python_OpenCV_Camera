@@ -7,7 +7,7 @@ def GetRandomWorld():
     number = random.randint(5, 8)  # 生成1到10之间的随机整数
     # 生成随机英文字符
     word = ""
-    for i in range(1,number):
+    for i in range(0,number):
         random_letter = random.choice(letters)
         word = word + random_letter
     setstr = str(word).lower()

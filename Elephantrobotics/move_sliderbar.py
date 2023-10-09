@@ -10,7 +10,7 @@ stopRun = "CJXRp"
 continueRun = "CJXRr"
 method = "FindEveryPC"
 #1400
-SlideTotalLength = -950
+SlideTotalLength = -1050
 CurrentSlideBarDistanceFile = "C:\\CurrentSlideBarDistanceFile.txt"
 SlideBarDistanceFile = "C:\\SlideBarDistanceFile.txt"
 MachinesDistance  = {}
@@ -88,6 +88,7 @@ def ScanAllMachines():
     if os.path.exists(SlideBarDistanceFile):
         os.remove(SlideBarDistanceFile)
     ScanMachine()
+    time.sleep(2)
 
 def ScanMachine():
     moveLength = 0
@@ -131,15 +132,14 @@ def ScanMachine():
                 with open(SlideBarDistanceFile, 'a') as file:
                     file.write(str(saveMachineValue))
                     file.write("\r\n")
-                if str(tag_id) in machineAprilTags:
-                    #SendDataToMachine(value,"FindMachine:-158\n")    
-                    MachinesDistance[str(tag_id)] = str(moveLength)
-                else:
-                    sendPreID = tag_id
+                if str(tag_id) not in MachinesDistance:
                     MachinesDistance[str(tag_id)] = str(moveLength)
                     target_ip = machine_ips.get(str(tag_id))
                     sendStr = "MachineId:" + str(tag_id) +", Location:" + str(moveLength) +'\n'
-                    send_data_to_machine.SendDataToMachine(str(target_ip),sendStr)  
+                    send_data_to_machine.SendDataToMachine(str(target_ip),sendStr)
+                else:
+                    print((tag_id,moveLength))
+                    MachinesDistance[str(tag_id)] = str(moveLength)
         else:
             moveStepDistance = -10
             needMoveHigh = False

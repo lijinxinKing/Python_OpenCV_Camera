@@ -72,12 +72,15 @@ def get_calculate_params(self, img):
 
 def getColor():
         if settings.Camera == None:
-            settings.Camera = cv2.VideoCapture(1)
+            settings.Camera = cv2.VideoCapture(1, cv2.CAP_DSHOW)
             ret, frame = settings.Camera.read()  # 读取一帧
         else:
             ret, frame = settings.Camera.read()
             if ret == False:
-                return False
+                settings.Camera = cv2.VideoCapture(1, cv2.CAP_DSHOW)       
+                ret, frame = settings.Camera.read()  # 读取一帧
+                if ret:
+                    return False
         y = int(frame.shape[0] / 2)
         x = int(frame.shape[1] / 2)
         point_size = 1
