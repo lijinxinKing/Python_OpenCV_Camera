@@ -9,12 +9,21 @@ getMachineAprilTag = []
 import os
 def GetMachineAprilTag():
     i = 0
-    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
-    flag = cap.isOpened()
+    if settings.Camera == None:
+        settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+    #cap = cv2.VideoCapture(1)
+    flag = settings.Camera.isOpened()
+    if flag == False:
+        settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)
     getAllTags = []
     while i < 10:
         try:
-            ret, frame = cap.read()
+            cv2.waitKey(2)
+            ret, frame = settings.Camera.read()
+            if ret == False:
+                settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+                ret, frame = settings.Camera.read()
+                cv2.waitKey(2)
             if ret:
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 at_detector = apriltag.Detector(families='tag36h11') # 创建一个apriltag检测器
@@ -26,12 +35,16 @@ def GetMachineAprilTag():
                 else:
                     time.sleep(0.1)
                 if len(getAllTags) > 0:
-                    cap.release()
+                    #settings.Camera.release()
                     break
+            else:
+                start_exe()
             i = i + 1
         except:
             print("Error")
-    cap.release()
+    #settings.Camera.release()
+    if len(getAllTags) > 0:
+        print(getAllTags[0].tag_id)
     return getAllTags
 exe_path = ""
 def start_exe():

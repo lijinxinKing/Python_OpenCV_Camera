@@ -1,5 +1,5 @@
 import serial,time,math,os,sys
-import serial
+import serial,settings
 import serial.tools.list_ports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from Elephantrobotics import recognition_aprilTag,send_data_to_machine
@@ -16,7 +16,6 @@ SlideBarDistanceFile = "C:\\SlideBarDistanceFile.txt"
 MachinesDistance  = {}
 #setDistance = 10
 #cmd = "CJXCGX{}F1000$".format(setDistance)
-machine_ips={'6':'10.119.96.12','5':'10.119.96.60','7':'10.119.96.224'}
 COMM = None
 def getDeviceName():
     global deviceName
@@ -114,14 +113,14 @@ def ScanMachine():
             tag_id = aprilTagLocation[0].tag_id
             if aprilTag_center_x > 400:
                if str(tag_id) not in MachinesDistance:
-                   xMove = aprilTag_center_x - 320
-                   moveStepDistance = (xMove * moveDirection)/2
+                   xMove = aprilTag_center_x - 220
+                   moveStepDistance = -10 #(xMove * moveDirection)/2
                    willMoveTotalLen = abs(moveStepDistance + moveLength)
                    if willMoveTotalLen >abs(SlideTotalLength):
                        break
             elif aprilTag_center_x < 50:
                 if str(tag_id) in MachinesDistance:
-                    moveStepDistance = (320 * moveDirection)/2
+                    moveStepDistance = (220 * moveDirection)/2
                     willMoveTotalLen = abs(moveStepDistance + moveLength)
                     if willMoveTotalLen > abs(SlideTotalLength):
                         break
@@ -134,8 +133,9 @@ def ScanMachine():
                     file.write("\r\n")
                 if str(tag_id) not in MachinesDistance:
                     MachinesDistance[str(tag_id)] = str(moveLength)
-                    target_ip = machine_ips.get(str(tag_id))
-                    sendStr = "MachineId:" + str(tag_id) +", Location:" + str(moveLength) +'\n'
+                    target_ip = settings.TestMachine_ips.get(str(tag_id))
+                    sendMoveLength = round(moveLength)
+                    sendStr = "MachineID:" + str(tag_id) +", Location:" + str(sendMoveLength) +'\n'
                     send_data_to_machine.SendDataToMachine(str(target_ip),sendStr)
                 else:
                     print((tag_id,moveLength))

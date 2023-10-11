@@ -2,6 +2,7 @@ import time
 import platform
 from pymycobot.ultraArm import ultraArm
 import serial
+import pupil_apriltags as apriltag
 import serial.tools.list_ports
 import sys,os,cv2,redis,uuid,base64
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -164,14 +165,48 @@ def GetMachineIndex(machineIndex,keyboardCode):
         else:
             time.sleep(5)
 
+def GetCalibration():
+    i = 0
+    getAllTags = []
+    if settings.Camera == None:
+        settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+    while i < 10:
+        cv2.waitKey(2)
+        ret, frame = settings.Camera.read()
+        if ret:
+            cv2.waitKey(2)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # 创建一个apriltag检测器
+            at_detector = apriltag.Detector(families='tag36h11') 
+            tags = at_detector.detect(gray)
+            if len(tags) > 1:
+                for tag in tags:
+                    if tag.tag_id != 0:
+                        getAllTags.append(tag)
+            else:
+                time.sleep(0.1)
+            if len(getAllTags) >= 2:
+                #cap.release()
+                break
+            elif len(getAllTags) == 0:
+                settings.Camera.release()
+                recognition_aprilTag.start_exe()
+                settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+                time.sleep(1)
+        else:
+            settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+            ret, frame = settings.Camera.read()
+        i = i + 1
+    return getAllTags
+
 machine_id = "6"
 if __name__=="__main__":
     #move_sliderbar.ScanAllMachines()
-    for machine_id in ["5"]:
-        #move_sliderbar.GoToMachineByIndex(machine_id)
+    for machine_id in ["6","5"]:
+        move_sliderbar.GoToMachineByIndex(machine_id)
         time.sleep(1)
-        if settings.Camera == None:
-            settings.Camera = cv2.VideoCapture(1)  # 打开USB摄像头
+        # if settings.Camera == None:
+        #     settings.Camera = cv2.VideoCapture(1)  # 打开USB摄像头
         # 自动选择系统并连接机械臂
         if platform.system() == "Windows":
             if settings.SmartArm == None:
@@ -197,10 +232,9 @@ if __name__=="__main__":
         target_path = 'Temp_{}.jpg'.format(str(machine_id))
         new_target_path =  'Temp_{}_1.jpg'.format(str(machine_id))
 
-        caprial = recognition_aprilTag.GetCalibration()
-        #machineIndex = caprial[0].tag_id
+        caprial = GetCalibration()
         machine_code = settings.Machine_Code_Dic.get(machine_id)
-        #GetMachineIndex(machine_id, machine_code)
+        GetMachineIndex(machine_id, machine_code)
         h_x,h_y,h_w,h_h = TestPictureFile.GetKeyLocation("h",machine_id)
         print("Get Calibration {} ".format((caprial[0].center[0],caprial[1].center[0])))
         ratio = abs((caprial[1].center[0]-caprial[0].center[0])/180)
@@ -231,14 +265,14 @@ if __name__=="__main__":
         # for key in TestPictureFile.GetAllKeysLocation():
         #     move_to_key(key,True)
 
-        # print(typeStr)
-        # ip = settings.TestMachine_ips.get(machine_id)
-        # send_data_to_machine.SendDataToMachine(ip,"Will press random str: \'" +typeStr +"\'")
-        # for key in typeStr:
-        #     if " " == key:
-        #         key = "[SPACE]"
-        #     move_to_key(key,True)
-        move_to_key("[ESC]",True)
+        print(typeStr)
+        ip = settings.TestMachine_ips.get(machine_id)
+        send_data_to_machine.SendDataToMachine(ip,"Press random str:\'" +typeStr +"\'")
+        for key in typeStr:
+            if " " == key:
+                key = "[SPACE]"
+            move_to_key(key,True)
+        #move_to_key("[ESC]",True)
 
         time.sleep(2)
         ZERO = [235.55, 14, 130.0, 0.0]
