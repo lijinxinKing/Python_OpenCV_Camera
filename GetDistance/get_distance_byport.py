@@ -3,6 +3,8 @@ import serial
 import serial.tools.list_ports
 import time
 import re
+
+from CutApart import Cut_long_keyboard_move_robot
 com_rx_buf = ''				# 接收缓冲区
 com_tx_buf = ''				# 发送缓冲区
 COMM = serial.Serial()		# 定义串口对象
@@ -32,32 +34,37 @@ def serial_close():
     COMM.close()
 
 def com_receive():
-        try:
-            rx_buf = ''
-            rx_buf = COMM.read()  # 转化为整型数字
-            if rx_buf != b'':
-                time.sleep(0.01)
-                rx_buf = rx_buf + COMM.read_all()
-                return rx_buf
-            else:
-                return None
-        except:
-            pass
+    try:
+        rx_buf = ''
+        rx_buf = COMM.read()  # 转化为整型数字
+        if rx_buf != b'':
+            time.sleep(0.05)
+            rx_buf = rx_buf + COMM.read_all()
+            return rx_buf
+        else:
+            return None
+    except:
+        pass
 
 def GetCurrentDistance():
     serial_open()
     recv = ""
-    while recv == None or recv == "":
+    checkTimes = 10
+    allData = 0
+    getTimes = 0
+    while getTimes < checkTimes:
         recv = com_receive()
         if recv != None:
             lst = re.split(r"\s+", str(recv))
             for data in lst:
                 if str(data).isdigit():
-                    serial_close()
-                    return data
-        time.sleep(0.01)
+                    allData = allData + int(data)
+                    getTimes = getTimes + 1
+        time.sleep(0.1)
+
     serial_close()
-    return str(recv)
+    getLen = allData / getTimes
+    return int(getLen)
 
 if __name__ == "__main__":
-    print(GetCurrentDistance())
+   Cut_long_keyboard_move_robot.SetRobotForCutLongKey()

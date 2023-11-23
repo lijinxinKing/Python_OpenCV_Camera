@@ -4,10 +4,10 @@ import random
 
 def GetRandomWorld():
     letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    number = random.randint(5, 8)  # 生成1到10之间的随机整数
+    number = random.randint(30, 31)  # 生成1到10之间的随机整数
     # 生成随机英文字符
     word = ""
-    for i in range(0,number):
+    for i in range(0,32):
         random_letter = random.choice(letters)
         word = word + random_letter
     setstr = str(word).lower()
@@ -15,4 +15,4 @@ def GetRandomWorld():
 
 
 if __name__=="__main__":
-    GetRandomWorld()
+    print(GetRandomWorld())

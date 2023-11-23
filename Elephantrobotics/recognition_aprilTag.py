@@ -1,9 +1,11 @@
 import pupil_apriltags as apriltag
 import cv2
 import numpy as np
-import time
+import time,sys,os
 import subprocess
-import settings
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from  Elephantrobotics import settings
+#import settings
 getAllTags = []
 getMachineAprilTag = []
 import os
@@ -11,6 +13,8 @@ def GetMachineAprilTag():
     i = 0
     if settings.Camera == None:
         settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+        settings.Camera.set(3,settings.resolutionRatio_Width) #设置分辨率
+        settings.Camera.set(4,settings.resolutionRatio_Height)
     #cap = cv2.VideoCapture(1)
     flag = settings.Camera.isOpened()
     if flag == False:
@@ -30,7 +34,7 @@ def GetMachineAprilTag():
                 tags = at_detector.detect(gray)
                 if len(tags) > 0:
                     for tag in tags:
-                        if tag.tag_id != 586:
+                        if tag.tag_id < 586:
                             getAllTags.append(tag)
                 else:
                     time.sleep(0.1)

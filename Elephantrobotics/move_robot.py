@@ -10,7 +10,8 @@ from GetCameraData import get_color_location
 from CameraLocationTest import TestPictureFile
 from Elephantrobotics import TestRandom,move_sliderbar,move_zero,settings
 from Elephantrobotics import send_data_to_machine
-import recognition_aprilTag
+from Elephantrobotics import recognition_aprilTag
+
 from CameraLocationTest import TestServer
 from PIL import Image
 #print(move_sliderbar.GoToMachineByIndex("6"))
@@ -25,6 +26,9 @@ key_x = 0
 key_y = 0
 moveX = 0
 moveY = 0
+c_x = 320
+c_y = 240
+
 def GetXY():
     result = False
     for i in range(0,5):
@@ -123,9 +127,7 @@ def GetMachineIndex(machineIndex,keyboardCode):
                 if ret != False:
                     break
 
-    cv2.imwrite(target_path, frame) # 保存按下空格键时摄像头视频中的图像 
-       
-    
+    cv2.imwrite(target_path, frame) # 保存按下空格键时摄像头视频中的图像   
     # if os.path.exists(target_path) and os.path.exists(new_target_path):
     #     result = compare_images(target_path, new_target_path)
     #     if result:
@@ -165,6 +167,41 @@ def GetMachineIndex(machineIndex,keyboardCode):
         else:
             time.sleep(5)
 
+
+
+def GetAllAprilTag():
+    settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)  
+    checkTinmes:int = 15
+    maxLen = -1
+    allAprilTags = []
+    flag = settings.Camera.isOpened()
+    while flag and checkTinmes >0:
+        flag, frame = settings.Camera.read()
+        img = frame
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # 创建一个apriltag检测器
+        at_detector = apriltag.Detector(families='tag36h11') 
+        # at_detector = apriltag.Detector(families='tag36h11 tag25h9')  #for windows
+        # 进行apriltag检测，得到检测到的apriltag的列表
+        tags = at_detector.detect(gray)
+        print("%d apriltags have been detected."%len(tags))
+        if len(tags) > maxLen:
+            maxLen = len(tags)
+            allAprilTags = []
+            for tag in tags:
+                cv2.circle(img, tuple(tag.corners[0].astype(int)), 4,(255,0,0), 1) # left-top
+                cv2.circle(img, tuple(tag.corners[1].astype(int)), 4,(255,0,0), 1) # right-top
+                cv2.circle(img, tuple(tag.corners[2].astype(int)), 4,(255,0,0), 1) # right-bottom
+                cv2.circle(img, tuple(tag.corners[3].astype(int)), 4,(255,0,0), 1) # left-bottom
+                a = (tuple(tag.corners[3].astype(int))[0], tuple(tag.corners[3].astype(int))[1])
+                cv2.putText(img, str(tag.tag_id)+","+str(tag.center), (a[0]-100, a[1]- 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                allAprilTags.append(tag)
+        checkTinmes = checkTinmes - 1
+        cv2.waitKey(1000)
+    return allAprilTags
+
+
+
 def GetCalibration():
     i = 0
     getAllTags = []
@@ -176,7 +213,6 @@ def GetCalibration():
         if ret:
             cv2.waitKey(2)
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            # 创建一个apriltag检测器
             at_detector = apriltag.Detector(families='tag36h11') 
             tags = at_detector.detect(gray)
             if len(tags) > 1:
@@ -202,12 +238,11 @@ def GetCalibration():
 machine_id = "6"
 if __name__=="__main__":
     #move_sliderbar.ScanAllMachines()
-    for machine_id in ["6","5"]:
+    for machine_id in ["5"]:
         move_sliderbar.GoToMachineByIndex(machine_id)
         time.sleep(1)
-        # if settings.Camera == None:
-        #     settings.Camera = cv2.VideoCapture(1)  # 打开USB摄像头
-        # 自动选择系统并连接机械臂
+        if settings.Camera == None:
+            settings.Camera = cv2.VideoCapture(1,cv2.CAP_DSHOW)  # 打开USB摄像头       
         if platform.system() == "Windows":
             if settings.SmartArm == None:
                 getDeviceName()
@@ -224,8 +259,6 @@ if __name__=="__main__":
         time.sleep(0.5)
         print(coords)
 
-        c_x = 320
-        c_y = 240
         key_offset = 0
         PictureData  = ''
 
